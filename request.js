@@ -3,7 +3,7 @@ const https = require('https');
 const app_config = require('./app.config.json');
 
 const {RateLimiter} = require('limiter')
-const limiter = new RateLimiter({ tokensPerInterval: 1, interval: 500 })
+const limiter = new RateLimiter({ tokensPerInterval: 1, interval: 600 })
 
 function requestEnrichment(postData) {
     return new Promise(async (resolve, reject)=>{
@@ -25,11 +25,14 @@ function requestEnrichment(postData) {
     
         const req = https.request(options, (res) => {
             //console.log(`Status Code: ${res.statusCode}`);
-    
-            res.on('data', (d) => {
-                resolve(d)
-            });
-        });
+            if (res.statusCode == 200){
+                res.on('data', (d) => {
+                    resolve(d)
+                })
+            } else {
+                reject(res.statusCode)
+            }
+        })
     
         req.on('error', (e) => {
             reject(e)
@@ -38,6 +41,7 @@ function requestEnrichment(postData) {
         await limiter.removeTokens(1)
         req.write(postData);
         req.end();
+        // resolve(example)
     })
 }
 

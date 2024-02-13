@@ -45,8 +45,12 @@ async function enrichRecord(record) {
         let res = JSON.parse(await requestEnrichment(postData_full))
         if (!res.person) {
             res = JSON.parse(await requestEnrichment(postData_partial))
+            console.log('Performed partial')
+            console.log(postData_partial)
+            console.log(`MAtched: ${!!res.person}`)
         }
         if (res.person) {
+            console.log(res.person.phones[0])
             record.PHONE1 = res.person.phones[0]?.number || ''
             record.PHONE2 = res.person.phones[1]?.number || ''
             record.PHONE3 = res.person.phones[2]?.number || ''

@@ -23,6 +23,7 @@
     "limiter": "^2.1.0",
     "luxon": "^3.4.4",
     "node-file-dialog": "^1.0.3",
+    "puppeteer": "^22.0.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.1/xlsx-0.20.1.tgz"
   }
 }

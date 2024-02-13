@@ -54,17 +54,17 @@ async function main() {
         format: 'Enriching Records {bar} {percentage}%',
         hideCursor: true
     }, cliProgress.Presets.shades_classic);
-    bar.start(raw_data.length, 0)
+    //bar.start(raw_data.length, 0)
 
     const enriched_data = []
     for (let record of raw_data) {
         enriched_data.push(await enrichRecord(record))
-        bar.increment()
+        //bar.increment()
     }
-    bar.stop()
+    //bar.stop()
 
     var ws = XLSX.utils.json_to_sheet(enriched_data, {
-        header: ["status", "COMPLETED (USE INITIALS OR 'X')", "PHONE1", "PHONE2", "PHONE3", "LIST", "ID", "FIRSTNAME", "MIDDLENAME", "LASTNAME", "ADDRESS", "CITY", "STATE", "ZIP", "SALEPRICE", "__EMPTY", "__EMPTY_1", "DATE OF SALE", "COUNTY"]
+        header: ["status", "COMPLETED (USE INITIALS OR 'X')", "PHONE1", "PHONE2", "PHONE3", "LIST ID", "FIRSTNAME", "MIDDLENAME", "LASTNAME", "ADDRESS", "CITY", "STATE", "ZIP", "SALEPRICE", "__EMPTY", "__EMPTY_1", "DATE OF SALE", "COUNTY"]
     })
     ws['O1'] = ''
     ws['P1'] = ''
