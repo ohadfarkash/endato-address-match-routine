@@ -1,0 +1,23 @@
+{
+  "name": "endato-address-match-routine",
+  "version": "1.0.0",
+  "description": "Utilies the Person endpoints of Endato API to match a set of data, and prepare results for routine use.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ohadfarkash/endato-address-match-routine.git"
+  },
+  "author": "Ohad S. Farkash",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ohadfarkash/endato-address-match-routine/issues"
+  },
+  "homepage": "https://github.com/ohadfarkash/endato-address-match-routine#readme",
+  "dependencies": {
+    "api": "^6.1.1"
+  }
+}
