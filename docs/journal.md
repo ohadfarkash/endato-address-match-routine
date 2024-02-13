@@ -17,3 +17,12 @@ Configuration should have some way to specify the outputformat from the followin
 - csv
 
 These also being acceptable input file types.
+
+The record enrichment process will flow like so:
+1. Worksheet is extracted from file and parsed into JSON format, where headers make property keys
+2. Each record is itterated and enriched
+    1. Name pairs are generated for all possible names in the record
+    2. Each pair is itterated over and request is sent
+        1. First for full address
+        2. Then for partial address (state only)
+        3. If enrichment is successful return enriched record

@@ -1,5 +1,6 @@
 const fs = require('fs');
 const https = require('https');
+const app_config = require('./app.config.json');
 
 const {RateLimiter} = require('limiter')
 const limiter = new RateLimiter({ tokensPerInterval: 1, interval: 500 })
@@ -14,8 +15,8 @@ function requestEnrichment(postData) {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'Galaxy-Ap-Name': '7e74f316-6c77-447c-8f59-4704428bb280',
-                'Galaxy-Ap-Password': '8819158dbf0d4e319c7cf6cb035965f9',
+                'Galaxy-Ap-Name': app_config.api.key_name,
+                'Galaxy-Ap-Password': app_config.api.key_password,
                 'Galaxy-Client-Type': 'nodejs',
                 'Galaxy-Search-Type': 'DevAPIContactEnrich',
                 'Content-Length': Buffer.byteLength(postData)

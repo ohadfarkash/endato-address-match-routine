@@ -1,3 +1,7 @@
 {
-    "output_type": "xlsx"
+    "output_type": "xlsx",
+    "api": {
+        "key_name": "7e74f316-6c77-447c-8f59-4704428bb280",
+        "key_password": "8819158dbf0d4e319c7cf6cb035965f9"
+    }
 }

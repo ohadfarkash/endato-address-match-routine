@@ -1,5 +1,4 @@
 const requestEnrichment = require("./request")
-const cliProgress = require('cli-progress');
 
 function GenerateNamePairs(concat_firstname, concat_lastname) {
     let first_names = concat_firstname.split(' ')
@@ -8,7 +7,7 @@ function GenerateNamePairs(concat_firstname, concat_lastname) {
     let pairs = []
     for (let firstname of first_names) {
         for (let lastname of last_names) {
-            pairs.push({firstname, lastname})
+            pairs.push({ firstname, lastname })
         }
     }
     return pairs
@@ -16,16 +15,12 @@ function GenerateNamePairs(concat_firstname, concat_lastname) {
 
 /**
  * Takes a raw record (row) and attempts to populate it with phone numbers.
- * Returns a enrichRecordJob object to track progress of record enrichment.
  */
 async function enrichRecord(record) {
+    record["COMPLETED (USE INITIALS OR 'X')"] = 'X'
+
     let name_pairs = GenerateNamePairs(record.FIRSTNAME, record.LASTNAME)
 
-    const bar = new cliProgress.SingleBar({
-        format: '{bar} {percentage}%',
-        hideCursor: true
-    }, cliProgress.Presets.shades_classic);
-    bar.start(name_pairs.length, 0)
     for (let name_pair of name_pairs) {
         // Full post data including complete address
         let postData_full = JSON.stringify({
@@ -36,7 +31,7 @@ async function enrichRecord(record) {
                 "addressLine2": `${record.CITY}, ${record.STATE}`
             }
         })
-        
+
         // Partial post data with only state, no full address
         let postData_partial = JSON.stringify({
             "FirstName": name_pair.firstname,
@@ -46,7 +41,7 @@ async function enrichRecord(record) {
                 "addressLine2": record.STATE
             }
         })
-        
+
         let res = JSON.parse(await requestEnrichment(postData_full))
         if (!res.person) {
             res = JSON.parse(await requestEnrichment(postData_partial))
@@ -56,11 +51,9 @@ async function enrichRecord(record) {
             record.PHONE2 = res.person.phones[1]?.number || ''
             record.PHONE3 = res.person.phones[2]?.number || ''
 
-            bar.stop()
             return record
         }
 
-        bar.increment()
     }
     record.PHONE1 = 'X'
     return record

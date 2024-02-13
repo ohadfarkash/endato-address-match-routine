@@ -21,6 +21,7 @@
     "cli-progress": "^3.12.0",
     "inquirer": "^9.2.14",
     "limiter": "^2.1.0",
+    "luxon": "^3.4.4",
     "node-file-dialog": "^1.0.3",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.1/xlsx-0.20.1.tgz"
   }
