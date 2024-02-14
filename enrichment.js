@@ -134,7 +134,7 @@ async function enrichRecords(records) {
                     if (await page.$('span[itemprop="telephone"]') !== null) {
                         let element = await page.waitForSelector('span[itemprop="telephone"]')
                         let value = await element.evaluate(el => el.textContent)
-                        record.PHONE1 = value ? value.trim() : 'X'
+                        record.PHONE1 = value.trim()
                     }
 
                     await new Promise(r => setTimeout(r, 200));
@@ -153,6 +153,8 @@ async function enrichRecords(records) {
                     break;
                 }
 
+                if (!record.PHONE1) { record.PHONE1 = 'X'}
+                
                 // IMPORTANT: This is the main cooldown timer. It's been set arbitrarily based on common-sense limitations.
                 await new Promise(r => setTimeout(r, randomIntFromInterval(app_config.min_cooldown_time, app_config.max_cooldown_time)));
             }
