@@ -1,14 +1,11 @@
 const XLSX = require('xlsx')
-const enrichRecord = require('./enrichment')
 const cliProgress = require('cli-progress');
 const { DateTime } = require("luxon");
 const readline = require('readline');
 const path = require('path');
 const fs = require('fs');
-
-/* ========= Load Config ========= */
+const enrichRecords = require('./enrichment');
 const app_config = require('./app.config.json');
-
 
 /* ========= Prepare Directories ========= */
 const outputDir = './output'
@@ -50,18 +47,7 @@ async function main() {
     var first_sheet = workbook.Sheets[workbook.SheetNames[0]];
     const raw_data = XLSX.utils.sheet_to_json(first_sheet);
 
-    const bar = new cliProgress.SingleBar({
-        format: 'Enriching Records {bar} {percentage}%',
-        hideCursor: true
-    }, cliProgress.Presets.shades_classic);
-    //bar.start(raw_data.length, 0)
-
-    const enriched_data = []
-    for (let record of raw_data) {
-        enriched_data.push(await enrichRecord(record))
-        //bar.increment()
-    }
-    //bar.stop()
+    const enriched_data = await enrichRecords(raw_data)
 
     var ws = XLSX.utils.json_to_sheet(enriched_data, {
         header: ["status", "COMPLETED (USE INITIALS OR 'X')", "PHONE1", "PHONE2", "PHONE3", "LIST ID", "FIRSTNAME", "MIDDLENAME", "LASTNAME", "ADDRESS", "CITY", "STATE", "ZIP", "SALEPRICE", "__EMPTY", "__EMPTY_1", "DATE OF SALE", "COUNTY"]
