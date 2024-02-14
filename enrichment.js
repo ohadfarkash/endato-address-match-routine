@@ -2,16 +2,6 @@ const puppeteer = require('puppeteer-extra')
 const cliProgress = require('cli-progress')
 const levenshtein = require('fast-levenshtein')
 const app_config = require('./app.config.json')
-
-// const { DEFAULT_INTERCEPT_RESOLUTION_PRIORITY } = require('puppeteer')
-// const AdblockerPlugin = require('puppeteer-extra-plugin-adblocker')
-// puppeteer.use(
-//     AdblockerPlugin({
-//         // Optionally enable Cooperative Mode for several request interceptors
-//         //interceptResolutionPriority: DEFAULT_INTERCEPT_RESOLUTION_PRIORITY,
-//         blockTrackers: true // default: false
-//     })
-// )
 const { PuppeteerBlocker } = require('@cliqz/adblocker-puppeteer')
 const fetch = require('cross-fetch')
 
@@ -21,14 +11,39 @@ puppeteer.use(StealthPlugin())
 /**
  * Generate an array of first and last name pair objects for all variations of the given name fields
  */
-function GenerateNamePairs(concat_firstname, concat_lastname) {
+function generateNamePairs(concat_firstname, concat_lastname) {
     let first_names = concat_firstname.split(' ')
     let last_names = concat_lastname.split(' ')
 
+    let deadlocked = false
+    while (last_names.length > first_names.length) {
+        let new_last_names = []
+        for (let i = 0; i < last_names.length; i++){
+            let current = last_names[i]
+            let next = last_names[i + 1]
+            if ((next && !current.includes(' ') && current <= next) || deadlocked) {
+                deadlocked = false
+                new_last_names.push(current + ' ' + next)
+                i++;
+            } else {
+                new_last_names.push(current)
+            }
+        }
+        if (last_names.length == new_last_names.length) {
+            deadlocked = true
+        }
+        last_names = new_last_names
+    }
+    
     let pairs = []
-    for (let firstname of first_names) {
-        for (let lastname of last_names) {
-            pairs.push({ firstname, lastname })
+    for (let i = 0; i < first_names.length; i++) {
+        let firstname = first_names[i]
+        let lastname = last_names[i]
+        if (lastname) {
+            pairs.push({firstname, lastname})
+        } else {
+            lastname = last_names[last_names.length - 1]
+            pairs.push({firstname, lastname})
         }
     }
     return pairs
@@ -97,7 +112,7 @@ async function enrichRecords(records) {
     let permutations = 0
     let time = 0
     for (let record of records) {
-        let possibleNames = GenerateNamePairs(record.FIRSTNAME, record.LASTNAME).length
+        let possibleNames = generateNamePairs(record.FIRSTNAME, record.LASTNAME).length
         time += 5 + (possibleNames * 1.8) + (app_config.max_cooldown_time / 1000)
         permutations += possibleNames
     }
@@ -112,7 +127,7 @@ async function enrichRecords(records) {
             record["COMPLETED (USE INITIALS OR 'X')"] = 'X'
 
             // ITERATE ON NAME PAIRS
-            let name_pairs = GenerateNamePairs(record.FIRSTNAME, record.LASTNAME)
+            let name_pairs = generateNamePairs(record.FIRSTNAME, record.LASTNAME)
             for (let name_pair of name_pairs) {
                 await page.goto(`https://www.usphonebook.com/${name_pair.firstname.toLowerCase()}-${name_pair.lastname.toLowerCase()}/florida`)
                 await new Promise(r => setTimeout(r, 2000));
@@ -153,8 +168,6 @@ async function enrichRecords(records) {
                     break;
                 }
 
-                if (!record.PHONE1) { record.PHONE1 = 'X'}
-                
                 // IMPORTANT: This is the main cooldown timer. It's been set arbitrarily based on common-sense limitations.
                 await new Promise(r => setTimeout(r, randomIntFromInterval(app_config.min_cooldown_time, app_config.max_cooldown_time)));
             }

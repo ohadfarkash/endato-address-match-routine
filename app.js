@@ -8,7 +8,7 @@ const app_config = require('./app.config.json');
 
 /* ========= Prepare Directories ========= */
 const outputDir = './output'
-if (!fs.existsSync(outputDir)){
+if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir);
 }
 
@@ -48,22 +48,24 @@ async function main() {
 
     const enriched_data = await enrichRecords(raw_data)
 
-    var ws = XLSX.utils.json_to_sheet(enriched_data, {
-        header: ["status", "COMPLETED (USE INITIALS OR 'X')", "PHONE1", "PHONE2", "PHONE3", "LIST ID", "FIRSTNAME", "MIDDLENAME", "LASTNAME", "ADDRESS", "CITY", "STATE", "ZIP", "SALEPRICE", "__EMPTY", "__EMPTY_1", "DATE OF SALE", "COUNTY"]
-    })
-    ws['O1'] = ''
-    ws['P1'] = ''
-
-    var wb = XLSX.utils.book_new(ws);
-
-    let outputFileName = generateOutputFileName(workFilePath)
-    try {
-        XLSX.writeFile(wb, outputFileName, {
-            bookType: app_config.output_type
+    if (enriched_data && enriched_data.length) {
+        var ws = XLSX.utils.json_to_sheet(enriched_data, {
+            header: ["status", "COMPLETED (USE INITIALS OR 'X')", "PHONE1", "PHONE2", "PHONE3", "LIST ID", "FIRSTNAME", "MIDDLENAME", "LASTNAME", "ADDRESS", "CITY", "STATE", "ZIP", "SALEPRICE", "__EMPTY", "__EMPTY_1", "DATE OF SALE", "COUNTY"]
         })
-        console.log(`\nOutput file successfuly written to "${outputFileName}"`)
-    } catch (err) {
-        console.error("Failed to write output file!")
+        ws['O1'] = ''
+        ws['P1'] = ''
+
+        var wb = XLSX.utils.book_new(ws);
+
+        let outputFileName = generateOutputFileName(workFilePath)
+        try {
+            XLSX.writeFile(wb, outputFileName, {
+                bookType: app_config.output_type
+            })
+            console.log(`\nOutput file successfuly written to "${outputFileName}"`)
+        } catch (err) {
+            console.error("Failed to write output file!")
+        }
     }
 
 }
