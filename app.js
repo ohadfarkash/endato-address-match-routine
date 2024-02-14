@@ -1,5 +1,4 @@
 const XLSX = require('xlsx')
-const cliProgress = require('cli-progress');
 const { DateTime } = require("luxon");
 const readline = require('readline');
 const path = require('path');
