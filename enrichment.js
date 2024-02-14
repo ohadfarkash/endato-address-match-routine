@@ -84,7 +84,6 @@ async function enrichRecords(records) {
             let resState = resCityState.split(',')[1].trim().toUpperCase()
             let isStateMatch = resState == state.toUpperCase()
 
-            
             // console.log(`IsNameMatch: ${isNameMatch} | IsStateMatch: ${isStateMatch}`)
             if (isNameMatch && isStateMatch) {
                 // console.log(`\nReturning Button for: ${resName}`)
@@ -94,10 +93,14 @@ async function enrichRecords(records) {
     }
 
     // Calculate Perutations
-    // let permutations = 0
-    // for (let record of records) {
-    //     permutations += record
-    // }
+    let permutations = 0
+    let time = 0
+    for (let record of records) {
+        let possibleNames = GenerateNamePairs(record.FIRSTNAME, record.LASTNAME).length
+        time += 5 + (possibleNames * 1.8)
+        permutations += possibleNames
+    }
+    console.log(`${permutations} possible permuations of record data.\nMax enrichment time is ${Math.round(time/60)} minutes (not including captcha verification time).\n`)
 
     bar.start(records.length, 0)
 
@@ -109,68 +112,41 @@ async function enrichRecords(records) {
         // ITERATE ON NAME PAIRS
         let name_pairs = GenerateNamePairs(record.FIRSTNAME, record.LASTNAME)
         for (let name_pair of name_pairs) {
-            let fullname = `${name_pair.firstname} ${name_pair.lastname}`
-
-            // await page.goto('https://www.usphonebook.com/people-search')
             await page.goto(`https://www.usphonebook.com/${name_pair.firstname.toLowerCase()}-${name_pair.lastname.toLowerCase()}/florida`)
-            await new Promise(r => setTimeout(r, 5000));
+            await new Promise(r => setTimeout(r, 2000));
 
             // CHECK CAPTCHA
             while (await isCloudflareChallengePresent()) {
                 await new Promise(r => setTimeout(r, 5000));
             }
 
-            // await new Promise(r => setTimeout(r, 5000));
-
-            // await page.waitForSelector('.searchform input#focusFName')
-            // await page.type('.searchform input#focusFName', fullname, { delay: 300 })
-
-            // await page.waitForSelector('.searchform select#searchFormState')
-            // await page.select('.searchform select#searchFormState', record.STATE)
-
-            // await new Promise(r => setTimeout(r, randomIntFromInterval(1400, 1700)));
-
-            // await page.waitForSelector('.searchform button')
-            // await page.click('.searchform button', { offset: { x: 2, y: 3 } })
-
-            // await new Promise(r => setTimeout(r, randomIntFromInterval(3000, 4000)));
-
-            await new Promise(r => setTimeout(r, randomIntFromInterval(1000, 2000)));
+            await new Promise(r => setTimeout(r, randomIntFromInterval(2000, 3000)));
 
             // Check if there is a search result and if the name matches
             let resultButton = await tryFindButtonForMatchingResult(name_pair.firstname, name_pair.lastname, record.STATE)
             if (resultButton) {
                 await resultButton.click()
 
-                await new Promise(r => setTimeout(r, randomIntFromInterval(100, 200)));
+                await new Promise(r => setTimeout(r, randomIntFromInterval(800, 1200)));
 
-                try {
+                if (await page.$('span[itemprop="telephone"]') !== null) {
                     let element = await page.waitForSelector('span[itemprop="telephone"]')
                     let value = await element.evaluate(el => el.textContent)
                     record.PHONE1 = value.trim() || 'X'
-                } catch { }
+                }
 
-                await new Promise(r => setTimeout(r, 100));
+                await new Promise(r => setTimeout(r, 200));
 
-                try {
-                    await page.waitForSelector('a[itemprop="telephone"]')
-                    const value = await page.evaluate(
-                        () => document.querySelectorAll('a[itemprop="telephone"]')[1].innerHTML
-                    );
-                    record.PHONE2 = value.trim() || ''
-                } catch { }
+                let altPhoneNumbers = await page.$$('a[itemprop="telephone"]')
+                for (let i = 0; i < 2; i++) {
+                    let pn = altPhoneNumbers[i]
+                    if (pn){
+                        let value = await page.evaluate(el=>el.innerHTML, pn)
+                        record[`PHONE${i}`] = value.trim() || ''
+                    }
+                }
 
-                await new Promise(r => setTimeout(r, 100));
-
-                try {
-                    await page.waitForSelector('a[itemprop="telephone"]')
-                    const value = await page.evaluate(
-                        () => document.querySelectorAll('a[itemprop="telephone"]')[1].innerHTML
-                    );
-                    record.PHONE3 = value.trim() || ''
-                } catch { }
-
-                await new Promise(r => setTimeout(r, 100));
+                await new Promise(r => setTimeout(r, 200));
 
                 break;
             }
