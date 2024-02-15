@@ -19,7 +19,7 @@ function generateNamePairs(concat_firstname, concat_lastname) {
     let deadlocked = false
     while (last_names.length > first_names.length) {
         let new_last_names = []
-        for (let i = 0; i < last_names.length; i++){
+        for (let i = 0; i < last_names.length; i++) {
             let current = last_names[i]
             let next = last_names[i + 1]
             if ((next && !current.includes(' ') && current <= next) || deadlocked) {
@@ -40,24 +40,24 @@ function generateNamePairs(concat_firstname, concat_lastname) {
         }
         last_names = new_last_names
     }
-    
+
     // Concatinated
     let pairs = []
     for (let i = 0; i < first_names.length; i++) {
         let firstname = first_names[i]
         let lastname = last_names[i]
         if (lastname) {
-            pairs.push({firstname, lastname})
+            pairs.push({ firstname, lastname })
         } else {
             lastname = last_names[last_names.length - 1]
-            pairs.push({firstname, lastname})
+            pairs.push({ firstname, lastname })
         }
     }
 
     // Dead Locked
-    for (let firstname of first_names){
+    for (let firstname of first_names) {
         for (let lastname of deadlocked_last_names) {
-            pairs.push({firstname, lastname})
+            pairs.push({ firstname, lastname })
         }
     }
     return pairs
@@ -151,7 +151,7 @@ async function enrichRecords(records) {
             // ITERATE ON NAME PAIRS
             let name_pairs = generateNamePairs(record.FIRSTNAME, record.LASTNAME)
             for (let name_pair of name_pairs) {
-                await page.goto(`https://www.usphonebook.com/${name_pair.firstname.toLowerCase().replace(' ', '-')}-${name_pair.lastname.toLowerCase().replace(' ', '-')}/florida`)
+                await page.goto(`https://www.usphonebook.com/${name_pair.firstname.toLowerCase().replace(' ', '-')}-${name_pair.lastname.toLowerCase().replace(' ', '-')}/${abbreviationToStateName(record.STATE)}`)
                 await new Promise(r => setTimeout(r, 2000));
 
                 // CHECK CAPTCHA
@@ -181,7 +181,7 @@ async function enrichRecords(records) {
                         let pn = altPhoneNumbers[i]
                         if (pn) {
                             let value = await page.evaluate(el => el.innerHTML, pn)
-                            record[`PHONE${i+2}`] = value.trim() || ''
+                            record[`PHONE${i + 2}`] = value.trim() || ''
                         }
                     }
 
@@ -211,6 +211,68 @@ async function enrichRecords(records) {
 
 function randomIntFromInterval(min, max) { // min and max included 
     return Math.floor(Math.random() * (max - min + 1) + min)
+}
+
+function abbreviationToStateName(abbreviation) {
+    const states = {
+        AL: "Alabama",
+        AK: "Alaska",
+        AZ: "Arizona",
+        AR: "Arkansas",
+        CA: "California",
+        CO: "Colorado",
+        CT: "Connecticut",
+        DE: "Delaware",
+        FL: "Florida",
+        GA: "Georgia",
+        HI: "Hawaii",
+        ID: "Idaho",
+        IL: "Illinois",
+        IN: "Indiana",
+        IA: "Iowa",
+        KS: "Kansas",
+        KY: "Kentucky",
+        LA: "Louisiana",
+        ME: "Maine",
+        MD: "Maryland",
+        MA: "Massachusetts",
+        MI: "Michigan",
+        MN: "Minnesota",
+        MS: "Mississippi",
+        MO: "Missouri",
+        MT: "Montana",
+        NE: "Nebraska",
+        NV: "Nevada",
+        NH: "New Hampshire",
+        NJ: "New Jersey",
+        NM: "New Mexico",
+        NY: "New York",
+        NC: "North Carolina",
+        ND: "North Dakota",
+        OH: "Ohio",
+        OK: "Oklahoma",
+        OR: "Oregon",
+        PA: "Pennsylvania",
+        RI: "Rhode Island",
+        SC: "South Carolina",
+        SD: "South Dakota",
+        TN: "Tennessee",
+        TX: "Texas",
+        UT: "Utah",
+        VT: "Vermont",
+        VA: "Virginia",
+        WA: "Washington",
+        WV: "West Virginia",
+        WI: "Wisconsin",
+        WY: "Wyoming"
+    };
+
+    const stateName = states[abbreviation.toUpperCase()];
+    if (!stateName) {
+        return "Invalid abbreviation";
+    }
+
+    return stateName.split(' ').join('-');
 }
 
 module.exports = enrichRecords
