@@ -1,7 +1,7 @@
 {
   "name": "phone-finder",
   "version": "1.0.0",
-  "description": "Utilies the Person endpoints of Endato API to match a set of data, and prepare results for routine use.",
+  "description": "Uses web scraping to collect phone number for contact enrichment from usphonebook.com",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

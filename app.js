@@ -37,7 +37,7 @@ async function main() {
             input: process.stdin,
             output: process.stdout
         })
-        workFilePath = await iRead.question("Please enter work file path, or\ndrag and drop the file into this prompt: ")
+        workFilePath = await iRead.question("Please enter work file path, or drag and drop\nthe file into this prompt, then hit enter: ")
         iRead.close()
     }
 

@@ -1,4 +1,5 @@
-# endato-address-match-routine
+# Phone Finder
+A NodeJS application designed to ease to automate the collection of phone numbers for contact enrichment. This application utilizes web scraping methods to collect data from [usphonebook.com](https://www.usphonebook.com/).
 
 ## Installation
 
@@ -6,7 +7,9 @@
 NodeJS is required to run this applications. It can be downloaded [here](https://nodejs.org/en/download).
 
 **Downloading the applicaiton**
-Start by downloading the application
+Start by downloading the application, which can be done by either downloading the [zip file](https://github.com/ohadfarkash/phone-finder/archive/refs/heads/master.zip) or cloning the repository.
+
+Once the application files are loaded to a directory, the user must double click on the `setup.bat` file to complete the installation process.
 
 ## Usage
 **Making sure your workfile is correct**
