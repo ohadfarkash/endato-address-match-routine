@@ -29,9 +29,9 @@ If you find it difficult to have both windows open, you can optionally launch `s
 This application relies on the use of a chromium browser instance. In short, this is a internet browser application, open in such a way that we can interact with it through code. To garuntee the highest level of clearance through security measures, we must keep the browser open. Likewise, the browser application should remain in the forefront, and be given proprity on the desktop environment.
 
 To make things simple here is a checklist:
-- [ ] The device (laptop) is plugged into a charger.
-- [ ] The browser window is on top of all the other windows.
-- [ ] Device is set to stay awake for the duration of the applications running time.
+- [x] The device (laptop) is plugged into a charger.
+- [x] The browser window is on top of all the other windows.
+- [x] Device is set to stay awake for the duration of the applications running time.
 
 ## Configuration
 The configuration file `app.config.json` can be found in the root directory of the application (same folder as `start.bat`). It can be modified using any basic text editor application. Changes only apply the next time you run the application.

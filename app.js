@@ -1,10 +1,10 @@
 const XLSX = require('xlsx')
-const { DateTime } = require("luxon");
 const readline = require('readline');
 const path = require('path');
 const fs = require('fs');
 const enrichRecords = require('./enrichment');
 const app_config = require('./app.config.json');
+const { DateTime, Duration } = require("luxon");
 
 /* ========= Prepare Directories ========= */
 const outputDir = './output'
@@ -46,7 +46,10 @@ async function main() {
     var first_sheet = workbook.Sheets[workbook.SheetNames[0]];
     const raw_data = XLSX.utils.sheet_to_json(first_sheet);
 
+    const startTime = DateTime.now()
     const enriched_data = await enrichRecords(raw_data)
+    const elapsedTime = DateTime.now().diff(startTime)
+    console.log(`\n${raw_data.length} records enriched in ${elapsedTime.hours} hours ${elapsedTime.minutes} minutes ${elapsedTime.seconds.toFixed(0)} seconds`)
 
     if (enriched_data && enriched_data.length) {
         var ws = XLSX.utils.json_to_sheet(enriched_data, {
