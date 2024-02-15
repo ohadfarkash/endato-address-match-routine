@@ -14,6 +14,7 @@ puppeteer.use(StealthPlugin())
 function generateNamePairs(concat_firstname, concat_lastname) {
     let first_names = concat_firstname.split(' ')
     let last_names = concat_lastname.split(' ')
+    let deadlocked_last_names = []
 
     let deadlocked = false
     while (last_names.length > first_names.length) {
@@ -22,6 +23,11 @@ function generateNamePairs(concat_firstname, concat_lastname) {
             let current = last_names[i]
             let next = last_names[i + 1]
             if ((next && !current.includes(' ') && current <= next) || deadlocked) {
+                if (deadlocked || current.length > 3) { // Will cache deadlocked names, and names that are unlikely pairs
+                    deadlocked_last_names.push(current)
+                    deadlocked_last_names.push(next)
+                }
+
                 deadlocked = false
                 new_last_names.push(current + ' ' + next)
                 i++;
@@ -35,6 +41,7 @@ function generateNamePairs(concat_firstname, concat_lastname) {
         last_names = new_last_names
     }
     
+    // Concatinated
     let pairs = []
     for (let i = 0; i < first_names.length; i++) {
         let firstname = first_names[i]
@@ -43,6 +50,13 @@ function generateNamePairs(concat_firstname, concat_lastname) {
             pairs.push({firstname, lastname})
         } else {
             lastname = last_names[last_names.length - 1]
+            pairs.push({firstname, lastname})
+        }
+    }
+
+    // Dead Locked
+    for (let firstname of first_names){
+        for (let lastname of deadlocked_last_names) {
             pairs.push({firstname, lastname})
         }
     }
@@ -129,7 +143,7 @@ async function enrichRecords(records) {
             // ITERATE ON NAME PAIRS
             let name_pairs = generateNamePairs(record.FIRSTNAME, record.LASTNAME)
             for (let name_pair of name_pairs) {
-                await page.goto(`https://www.usphonebook.com/${name_pair.firstname.toLowerCase()}-${name_pair.lastname.toLowerCase()}/florida`)
+                await page.goto(`https://www.usphonebook.com/${name_pair.firstname.toLowerCase().replace(' ', '-')}-${name_pair.lastname.toLowerCase().replace(' ', '-')}/florida`)
                 await new Promise(r => setTimeout(r, 2000));
 
                 // CHECK CAPTCHA
@@ -178,6 +192,7 @@ async function enrichRecords(records) {
     } catch (error) {
         console.error(error)
         console.log('\nCritical error! Some records may have been skipped.\nDumping successful matches into output file...')
+        await page.screenshot({ path: 'error.png', fullPage: true })
     }
 
     await browser.close()
