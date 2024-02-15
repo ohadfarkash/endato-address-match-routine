@@ -272,7 +272,7 @@ function abbreviationToStateName(abbreviation) {
         return "Invalid abbreviation";
     }
 
-    return stateName.split(' ').join('-');
+    return stateName
 }
 
 module.exports = enrichRecords
