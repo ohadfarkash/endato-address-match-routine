@@ -48,7 +48,7 @@ async function main() {
 
     const startTime = DateTime.now()
     const enriched_data = await enrichRecords(raw_data)
-    const elapsedTime = DateTime.now().diff(startTime)
+    const elapsedTime = DateTime.now().diff(startTime).shiftTo('hours', 'minutes', 'seconds').toObject()
     console.log(`\n${raw_data.length} records enriched in ${elapsedTime.hours} hours ${elapsedTime.minutes} minutes ${elapsedTime.seconds.toFixed(0)} seconds`)
 
     if (enriched_data && enriched_data.length) {
