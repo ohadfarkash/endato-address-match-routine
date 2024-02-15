@@ -25,6 +25,8 @@ Click and drag files into the `start.bat` file. This will launch the application
 
 If you find it difficult to have both windows open, you can optionally launch `start.bat` without a file, by double clicking on it. Then, you can drag the file into the console and hit the <kbd>Enter</kbd>.
 
+Once the file is found, the application will open a browser window and begin the scraping process. There will be an initial Cloudflare verification. You may need to manually verify this by checking the box, if it does not go through automatically. After this, the program will sense access and take over. Make some tea, sit back, relax, and peek from time to time to make sure all is well.
+
 **Suggested practices for usage**
 This application relies on the use of a chromium browser instance. In short, this is an internet browser application, open in such a way that we can interact with it through code. To guarantee the highest level of clearance through security measures, we must keep the browser open. Likewise, the browser application should remain in the forefront, and be given priority on the desktop environment.
 

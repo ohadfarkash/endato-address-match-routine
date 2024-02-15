@@ -98,8 +98,9 @@ async function enrichRecords(records) {
 
     const tryFindButtonForMatchingResult = async (firstname, lastname, state) => {
         let names = await page.$$('.ls_number-text span')
-        let cityStates = await page.$$('.success-wrapper-block span.ls_success-black-text[itemprop="address"]')
-        // console.log(`Names: ${names.length} | CityStates: ${cityStates.length}`)
+        let personcards = await page.$$('.success-wrapper-block')
+        // let cityStates = await page.$$('.success-wrapper-block span.ls_success-black-text[itemprop="address"]')
+        // console.log(`Names: ${names.length} | CityStates: ${cityStates.length} | personcards: ${personcards.length}`)
         let buttons = await page.$$('.success-wrapper-block a.ls_contacts-btn')
         for (let i = 0; i < names.length; i++) {
             let resName = await page.evaluate(el => el.innerHTML, names[i])
@@ -110,9 +111,16 @@ async function enrichRecords(records) {
 
             // console.log('\nTrying: ' + resName + ` | Firstname = ${firstname.toUpperCase()}, Lastname = ${lastname.toUpperCase()}`)
 
-            let resCityState = await page.evaluate(el => el.innerHTML, cityStates[i])
-            let resState = resCityState.split(',')[1].trim().toUpperCase()
-            let isStateMatch = resState == state.toUpperCase()
+            let resAddresses = await personcards[i].$$('span[itemprop="address"]')
+            let isStateMatch = false
+            for (let resAddress of resAddresses) {
+                let resCityState = await page.evaluate(el => el.innerHTML, resAddress)
+                let resState = resCityState.split(',')[1].trim().toUpperCase()
+                isStateMatch ||= resState == state.toUpperCase()
+            }
+            // let resCityState = await page.evaluate(el => el.innerHTML, cityStates[i])
+            // let resState = resCityState.split(',')[1].trim().toUpperCase()
+            // isStateMatch = resState == state.toUpperCase()
 
             // console.log(`IsNameMatch: ${isNameMatch} | IsStateMatch: ${isStateMatch}`)
             if (isNameMatch && isStateMatch) {
