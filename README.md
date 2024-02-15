@@ -35,6 +35,9 @@ To make things simple, here is a checklist:
 - [x] The browser window is on top of all the other windows.
 - [x] Device is set to stay awake for the duration of the application's running time.
 
+#### Where are the output files?
+There is a folder in the root directory called `output` which contains all the output files. You are free to move, modify, rename, and delete them as you see fit.
+
 ## Configuration
 The configuration file `app.config.json` can be found in the root directory of the application (same folder as `start.bat`). It can be modified using any basic text editor application. Changes only apply the next time you run the application.
 |Property|Default|Description|
