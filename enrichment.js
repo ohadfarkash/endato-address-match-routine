@@ -272,7 +272,7 @@ function abbreviationToStateName(abbreviation) {
         return "Invalid abbreviation";
     }
 
-    return stateName
+    return stateName.toLowerCase()
 }
 
 module.exports = enrichRecords
