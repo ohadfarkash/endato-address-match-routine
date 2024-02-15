@@ -1,5 +1,5 @@
 {
-  "name": "endato-address-match-routine",
+  "name": "phone-finder",
   "version": "1.0.0",
   "description": "Utilies the Person endpoints of Endato API to match a set of data, and prepare results for routine use.",
   "main": "app.js",
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ohadfarkash/endato-address-match-routine.git"
+    "url": "git+https://github.com/ohadfarkash/phone-finder.git"
   },
   "author": "Ohad S. Farkash",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ohadfarkash/endato-address-match-routine/issues"
+    "url": "https://github.com/ohadfarkash/phone-finder/issues"
   },
-  "homepage": "https://github.com/ohadfarkash/endato-address-match-routine#readme",
+  "homepage": "https://github.com/ohadfarkash/phone-finder#readme",
   "dependencies": {
     "@cliqz/adblocker-puppeteer": "^1.26.15",
     "cli-progress": "^3.12.0",

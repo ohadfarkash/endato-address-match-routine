@@ -26,3 +26,21 @@ The record enrichment process will flow like so:
         1. First for full address
         2. Then for partial address (state only)
         3. If enrichment is successful return enriched record
+## 02-13-24 01
+Issues have been risen with the API. At around 3:00pm the API began blocking calls. After contacting multiple representatives, it was suggested that the account be "upgraded" to the paid version to aleviate the issues. Unfortunately, speaking with a sales representative did not accomplish activation of the account.
+
+Client was informed of the situation, and is also reluctant to proceed with a different API. Options are being explored.
+## 02-14-24 00
+Major shift in technology used to aquire data for record enrichment. Instead of API calls, program will now use web scraping. This is to avoid charges related to API matches.
+
+To accomplish this, puppeteer was used. Along with puppeteer is a generic adblocker and tacker blocking system, and a masking system. These aid in bypassing the Cloudflare security being used to protect the site from bots.
+
+Along witht his major change, the system for mutating record names has changed. This is to make it more accurate, and closer align it with the actual process used by the client in matching records manually. The positive effect of this change is also a near half reduction in permutations, thus equating to double the total enrichment rate.
+
+Client was informed of the changes and has approved use of the scraping based system. As such the branch has been moved to master, and furthur development will revolve around web scraping techniques.
+
+The following is a rough list of remaining tasks:
+- Update README
+    - Add basic user guide
+- Create an elapse time counter for determining how long the application took to process
+- Install the application on clients browser and instruct on usage.

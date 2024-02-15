@@ -1,5 +1,5 @@
 {
     "output_type": "xlsx",
-    "min_cooldown_time": 0,
-    "max_cooldown_time": 30000
+    "min_cooldown_time": 20000,
+    "max_cooldown_time": 50000
 }
