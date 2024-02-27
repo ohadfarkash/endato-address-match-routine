@@ -1,5 +1,5 @@
 # Phone Finder
-A NodeJS application designed to ease to automate the collection of phone numbers for contact enrichment. This application utilizes web scraping methods to collect data from [usphonebook.com](https://www.usphonebook.com/).
+A NodeJS application designed to automate the collection of phone numbers for contact enrichment. This application utilizes web scraping methods to collect data from [usphonebook.com](https://www.usphonebook.com/).
 
 ## Installation
 
