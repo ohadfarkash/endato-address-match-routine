@@ -1,6 +1,6 @@
 {
   "name": "phone-finder",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Uses web scraping to collect phone number for contact enrichment from usphonebook.com",
   "main": "app.js",
   "scripts": {
