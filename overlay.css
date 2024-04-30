@@ -1,0 +1,134 @@
+.overlay_zone{
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    pointer-events: none;
+
+    font-family: Helvetica, sans-serif;
+}
+
+.overlay_zone *{
+    font-family: Helvetica, sans-serif;
+    font-size: 14px;
+    color: black;
+}
+
+.overlay_zone h1 {
+    font-size: 18px;
+    margin: 3px 0px;
+}
+
+.o_mountable {
+    position: absolute;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+}
+.o_window {
+    position: absolute;
+    background-color: lightgray;
+    height: fit-content;
+    width: 400px;
+    border: 1px solid #a2a2a2;
+    box-shadow: 0px 0px 8px 0px #eee;
+    pointer-events: all;
+}
+.o_window>.o_contents{
+    padding: 3px;
+}
+
+.o_grip {
+    background-image: radial-gradient(rgb(188, 188, 188) 1px, transparent 0);
+    background-size: 3px 3px;
+    /* height: 20px; */
+    border: 2px solid;
+    border-top-color: #cacaca;
+    border-left-color: #cacaca;
+    border-right-color: #a2a2a2;
+    border-bottom-color: #a2a2a2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.o_grip>div{
+    background-color: lightgray;
+    margin: auto;
+    padding: 2px;
+    width: fit-content;
+    user-select: none;
+    font-weight: bold;
+}
+
+.o_record_nav>.o_row{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    text-align: center;
+}
+
+.o_record_links{
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
+    gap: 3px;
+}
+
+.o_name_selector{
+    display: grid;
+    grid-template-columns: min-content auto;
+}
+.o_name_selector>h1{
+    font-size: 16px;
+    font-weight: normal;
+    text-wrap: nowrap;
+    margin-right: 3px;
+}
+.o_name_selector>.o_cards{
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 3px;
+    font-size: 14px;
+}
+.o_name_selector>.o_cards>div{
+    padding: 3px;
+    background: #eee;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 1px dashed gray;
+}
+.o_name_selector>.o_cards>.o_checked{
+    background: #becfe6;
+    border-style: solid;
+}
+
+.o_sep{
+    border-bottom: 1px solid rgb(172, 171, 171);
+}
+
+.o_record_links>.o_actions{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 3px;
+    justify-content: stretch;
+}
+
+.o_phone_input>.o_grid {
+    display: grid;
+    grid-template-columns: min-content auto;
+    align-items: center;
+    gap: 6px;
+}
+.o_phone_input>.o_grid>h2 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: normal;
+    text-wrap: nowrap;
+}
+.o_phone_input>.o_grid>input[type="text"] {
+    height: fit-content;
+}

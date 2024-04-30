@@ -9,83 +9,50 @@ const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
 
 /**
- * Generate an array of first and last name pair objects for all variations of the given name fields
- */
-function generateNamePairs(concat_firstname, concat_lastname) {
-    let first_names = concat_firstname.split(' ')
-    let last_names = concat_lastname.split(' ')
-    let deadlocked_last_names = []
-
-    let deadlocked = false
-    while (last_names.length > first_names.length) {
-        let new_last_names = []
-        for (let i = 0; i < last_names.length; i++) {
-            let current = last_names[i]
-            let next = last_names[i + 1]
-            if ((next && !current.includes(' ') && current <= next) || deadlocked) {
-                if (deadlocked || current.length > 3) { // Will cache deadlocked names, and names that are unlikely pairs
-                    deadlocked_last_names.push(current)
-                    deadlocked_last_names.push(next)
-                }
-
-                deadlocked = false
-                new_last_names.push(current + ' ' + next)
-                i++;
-            } else {
-                new_last_names.push(current)
-            }
-        }
-        if (last_names.length == new_last_names.length) {
-            deadlocked = true
-        }
-        last_names = new_last_names
-    }
-
-    // Concatinated
-    let pairs = []
-    for (let i = 0; i < first_names.length; i++) {
-        let firstname = first_names[i]
-        let lastname = last_names[i]
-        if (lastname) {
-            pairs.push({ firstname, lastname })
-        } else {
-            lastname = last_names[last_names.length - 1]
-            pairs.push({ firstname, lastname })
-        }
-    }
-
-    // Dead Locked
-    for (let firstname of first_names) {
-        for (let lastname of deadlocked_last_names) {
-            pairs.push({ firstname, lastname })
-        }
-    }
-    return pairs
-}
-
-
-/**
  * Takes a raw records (rows) and attempts to populate them with phone numbers.
  */
 async function enrichRecords(records) {
-    // Progress Bar
-    const bar = new cliProgress.SingleBar({
-        format: 'Enriching Records {bar} {percentage}%',
-        hideCursor: true
-    }, cliProgress.Presets.shades_classic);
+    var moveFlag = 0 // -1 = prev | 0 = stay | 1 = next
 
     // PREP BROWSER
     const browser = await puppeteer.launch({
         headless: false, // So user can interact with captcha
         slowMo: 10, // Slow down movements
-        targetFilter: (target) => !!target.url()
+        // args: [
+        //     '--no-sandbox',
+        //     '--disable-setuid-sandbox',
+        //     '--disable-infobars',
+        //     '--no-zygote',
+        //     '--no-first-run',
+        //     '--ignore-certificate-errors',
+        //     '--ignore-certificate-errors-skip-list',
+        //     '--disable-dev-shm-usage',
+        //     '--disable-accelerated-2d-canvas',
+        //     '--disable-gpu',
+        //     '--hide-scrollbars',
+        //     '--disable-notifications',
+        //     '--disable-background-timer-throttling',
+        //     '--disable-backgrounding-occluded-windows',
+        //     '--disable-breakpad',
+        //     '--disable-component-extensions-with-background-pages',
+        //     '--disable-extensions',
+        //     '--disable-features=TranslateUI,BlinkGenPropertyTrees',
+        //     '--disable-ipc-flooding-protection',
+        //     '--disable-renderer-backgrounding',
+        //     '--enable-features=NetworkService,NetworkServiceInProcess',
+        //     '--force-color-profile=srgb',
+        //     '--metrics-recording-only',
+        //     '--mute-audio',
+        //     '--start-maximized'
+        // ]
+        // targetFilter: (target) => !!target.url()
     })
     const page = (await browser.pages())[0] // Select initial open tab (which somehow prevents cloudflare from catching us)
 
     // Enable Adblock
-    PuppeteerBlocker.fromPrebuiltAdsAndTracking(fetch).then((blocker) => {
-        blocker.enableBlockingInPage(page);
-    })
+    // PuppeteerBlocker.fromPrebuiltAdsAndTracking(fetch).then((blocker) => {
+    //     blocker.enableBlockingInPage(page);
+    // })
 
     // Function to check for Cloudflare challenge
     const isCloudflareChallengePresent = async () => {
@@ -96,106 +63,108 @@ async function enrichRecords(records) {
         })
     }
 
-    const tryFindButtonForMatchingResult = async (firstname, lastname, state) => {
-        let names = await page.$$('.ls_number-text span')
-        let personcards = await page.$$('.success-wrapper-block')
-        // let cityStates = await page.$$('.success-wrapper-block span.ls_success-black-text[itemprop="address"]')
-        // console.log(`Names: ${names.length} | CityStates: ${cityStates.length} | personcards: ${personcards.length}`)
-        let buttons = await page.$$('.success-wrapper-block a.ls_contacts-btn')
-        for (let i = 0; i < names.length; i++) {
-            let resName = await page.evaluate(el => el.innerHTML, names[i])
-            let resNameSplit = resName.split(' ')
-            let resFirstName = resNameSplit[0].toUpperCase()
-            let resLastName = resNameSplit[resNameSplit.length - 1].toUpperCase()
-            let isNameMatch = (levenshtein.get(resFirstName, firstname.toUpperCase()) <= 2) && (levenshtein.get(resLastName, lastname.toUpperCase()) <= 2)
+    var overlay_data = {
+        county_name: "",
+        record_index: -1,
+        first_names: [],
+        middle_names: [],
+        last_names: [],
+        phone1: "",
+        phone2: "",
+        phone3: ""
+    }
 
-            // console.log('\nTrying: ' + resName + ` | Firstname = ${firstname.toUpperCase()}, Lastname = ${lastname.toUpperCase()}`)
+    const loadPage = async (href) => {
+        await page.goto(href)
+    }
 
-            let resAddresses = await personcards[i].$$('span[itemprop="address"]')
-            let isStateMatch = false
-            for (let resAddress of resAddresses) {
-                let resCityState = await page.evaluate(el => el.innerHTML, resAddress)
-                let resState = resCityState.split(',')[1].trim().toUpperCase()
-                isStateMatch ||= resState == state.toUpperCase()
-            }
-            // let resCityState = await page.evaluate(el => el.innerHTML, cityStates[i])
-            // let resState = resCityState.split(',')[1].trim().toUpperCase()
-            // isStateMatch = resState == state.toUpperCase()
+    const injectOverlay = async () => {
+        await page.evaluate((overlay_data) => {
+            window.overlay_data = overlay_data
+        }, overlay_data)
 
-            // console.log(`IsNameMatch: ${isNameMatch} | IsStateMatch: ${isStateMatch}`)
-            if (isNameMatch && isStateMatch) {
-                // console.log(`\nReturning Button for: ${resName}`)
-                return buttons[i]
-            }
+        await page.addStyleTag({ path: './overlay.css' })
+        await page.addScriptTag({ path: './vue.dev.js' })
+        await page.addScriptTag({ path: './overlay.js' })
+    }
+
+    const load_record = () => {
+        let firstname = records[overlay_data.record_index]["FIRSTNAME"]
+        let middlename = records[overlay_data.record_index]["MIDDLENAME"]
+        let lastname = records[overlay_data.record_index]["LASTNAME"]
+        overlay_data.county_name = records[overlay_data.record_index]["COUNTY"]
+        overlay_data.first_names = firstname ? firstname.split(' ') : []
+        overlay_data.middle_names = middlename ? middlename.split(' ') : []
+        overlay_data.last_names = lastname ? lastname.split(' ') : []
+        overlay_data.phone1 = records[overlay_data.record_index]["PHONE1"] || ""
+        overlay_data.phone2 = records[overlay_data.record_index]["PHONE2"] || ""
+        overlay_data.phone3 = records[overlay_data.record_index]["PHONE3"] || ""
+    }
+
+    const search_county = async () => {
+        const countyLink = getCountyLink(overlay_data.county_name)
+        loadPage(countyLink)
+        // const newPage = await browser.newPage()
+        // await newPage.goto(countyLink)
+    }
+
+    const next_record = async () => {
+        if (overlay_data.record_index < records.length) {
+            overlay_data.record_index++
+            load_record()
+            await search_county()
         }
     }
 
-    // Calculate Perutations
-    let permutations = 0
-    let time = 0
-    for (let record of records) {
-        let possibleNames = generateNamePairs(record.FIRSTNAME, record.LASTNAME).length
-        time += 5 + (possibleNames * 1.8) + (app_config.max_cooldown_time / 1000)
-        permutations += possibleNames
+    const prev_record = async () => {
+        if (overlay_data.record_index > 0) {
+            overlay_data.record_index--
+            load_record()
+            await search_county()
+        }
     }
-    console.log(`${permutations} possible permuations of record data.\nMax enrichment time is ${Math.round(time / 60)} minutes (not including captcha verification time).\n`)
 
-    bar.start(records.length, 0)
+    const usphonebook = async (names) => {
+        let state = abbreviationToStateName(records[overlay_data.record_index]["STATE"])
+        let url = `https://www.usphonebook.com/${names.join('-')}/${state}`
+        loadPage(url)
+    }
 
-    const enriched_data = []
+    const beenverified = async (fn, mn, ln) => {
+        let state = records[overlay_data.record_index]["STATE"]
+        let city = records[overlay_data.record_index]["CITY"]
+        let mi = ""
+        if (mn && mn[0]) { mi = mn[0].charAt(0) }
+        let url = `https://www.beenverified.com/rf/search/person?age=&city=${city}&fname=${fn.join('%20')}&ln=${ln.join('%20')}&mn=${mi}&state=${state}`
+        loadPage(url)
+    }
+
+    const save_record = async (record) => {
+        overlay_data.phone1 = record.phone1
+        overlay_data.phone2 = record.phone2
+        overlay_data.phone3 = record.phone3
+        records[overlay_data.record_index]["PHONE1"] = overlay_data.phone1
+        records[overlay_data.record_index]["PHONE2"] = overlay_data.phone2
+        records[overlay_data.record_index]["PHONE3"] = overlay_data.phone3
+    }
+
+    page.on("framenavigated", frame => {
+        injectOverlay()
+    })
+
     try {
-        // ITERATE ON RECORDS
-        for (let record of records) {
-            record["COMPLETED (USE INITIALS OR 'X')"] = 'X'
+        // HALT OP
+        await page.exposeFunction('next_record', next_record)
+        await page.exposeFunction('prev_record', prev_record)
+        await page.exposeFunction('search_county', search_county)
+        await page.exposeFunction('usphonebook', usphonebook)
+        await page.exposeFunction('beenverified', beenverified)
+        await page.exposeFunction('save_record', save_record)
 
-            // ITERATE ON NAME PAIRS
-            let name_pairs = generateNamePairs(record.FIRSTNAME, record.LASTNAME)
-            for (let name_pair of name_pairs) {
-                await page.goto(`https://www.usphonebook.com/${name_pair.firstname.toLowerCase().replace(' ', '-')}-${name_pair.lastname.toLowerCase().replace(' ', '-')}/${abbreviationToStateName(record.STATE)}`)
-                await new Promise(r => setTimeout(r, 2000));
+        await next_record()
 
-                // CHECK CAPTCHA
-                while (await isCloudflareChallengePresent()) {
-                    await new Promise(r => setTimeout(r, 5000));
-                }
-
-                await new Promise(r => setTimeout(r, randomIntFromInterval(2000, 3000)));
-
-                // Check if there is a search result and if the name matches
-                let resultButton = await tryFindButtonForMatchingResult(name_pair.firstname, name_pair.lastname, record.STATE)
-                if (resultButton) {
-                    await resultButton.click()
-
-                    await new Promise(r => setTimeout(r, randomIntFromInterval(800, 1200)));
-
-                    if (await page.$('span[itemprop="telephone"]') !== null) {
-                        let element = await page.waitForSelector('span[itemprop="telephone"]')
-                        let value = await element.evaluate(el => el.textContent)
-                        record.PHONE1 = value.trim()
-                    }
-
-                    await new Promise(r => setTimeout(r, 200));
-
-                    let altPhoneNumbers = await page.$$('a[itemprop="telephone"]')
-                    for (let i = 0; i < 2; i++) {
-                        let pn = altPhoneNumbers[i]
-                        if (pn) {
-                            let value = await page.evaluate(el => el.innerHTML, pn)
-                            record[`PHONE${i + 2}`] = value.trim() || ''
-                        }
-                    }
-
-                    await new Promise(r => setTimeout(r, 200));
-
-                    break;
-                }
-
-                // IMPORTANT: This is the main cooldown timer. It's been set arbitrarily based on common-sense limitations.
-                await new Promise(r => setTimeout(r, randomIntFromInterval(app_config.min_cooldown_time, app_config.max_cooldown_time)));
-            }
-
-            enriched_data.push(record)
-            bar.increment()
+        while (browser.isConnected()) {
+            await new Promise(r => setTimeout(r, 1000));
         }
     } catch (error) {
         console.error(error)
@@ -203,10 +172,7 @@ async function enrichRecords(records) {
         await page.screenshot({ path: 'error.png', fullPage: true })
     }
 
-    await browser.close()
-    bar.stop()
-
-    return enriched_data
+    return records
 }
 
 function randomIntFromInterval(min, max) { // min and max included 
@@ -273,6 +239,31 @@ function abbreviationToStateName(abbreviation) {
     }
 
     return stateName.toLowerCase()
+}
+
+function getCountyLink(county) {
+    const counties = {
+        'ALACHUA': 'https://isol.alachuaclerk.org/RealEstate/SearchEntry.aspx',
+        'BREVARD': 'https://vaclmweb1.brevardclerk.us/AcclaimWeb/search/SearchTypeSimpleSearch',
+        'CITRUS': 'https://search.citrusclerk.org/LandmarkWeb/home/index',
+        'FLAGLER': 'https://records.flaglerclerk.com/home/index',
+        'HILLSBOROUGH': 'https://pubrec6.hillsclerk.com/ORIPublicAccess/customSearch.html',
+        'INDIAN RIVER': 'https://ori.indian-river.org/home/index',
+        'LAKE': 'https://officialrecords.lakecountyclerk.org/search/SearchTypeName',
+        'MANATEE': 'https://records.manateeclerk.com/OfficialRecords/Search/Party',
+        'MARION': 'https://nvweb.marioncountyclerk.org/BrowserView/',
+        // 'ORAGE': '',
+        'OSCEOLA': 'https://officialrecords.osceolaclerk.org/browserview/',
+        'PALM BEACH': 'https://erec.mypalmbeachclerk.com/home/index',
+        'PINELLAS': 'https://officialrecords.mypinellasclerk.org/search/SearchTypeName',
+        'POLK': 'https://apps.polkcountyclerk.net/browserviewor/',
+        'SARASOTA': 'https://secure.sarasotaclerk.com/OfficialRecords.aspx',
+        'SEMINOLE': 'https://recording.seminoleclerk.org/DuProcessWebInquiry/index.html',
+        'VOLUSIA': 'https://app02.clerk.org/or_m/inquiry.aspx',
+        'BROWARD': 'https://officialrecords.broward.org/AcclaimWeb/search/SearchTypeName',
+        'MIAMI-DADE': 'https://onlineservices.miamidadeclerk.gov/officialrecords/StandardSearch.aspx'
+    }
+    return counties[county]
 }
 
 module.exports = enrichRecords

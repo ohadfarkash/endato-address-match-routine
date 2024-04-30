@@ -44,3 +44,14 @@ The following is a rough list of remaining tasks:
     - Add basic user guide
 - Create an elapse time counter for determining how long the application took to process
 - Install the application on clients browser and instruct on usage.
+## 04-05-24 00
+On 04-01-24 revisions for the phone-finder app were discussed. A second version will be created which will feature these fundemental revisions:
+- No longer fully automiated. User now fetches numbers manually.
+- Phone finder will act as an interactive aid, allowing users to collect data and navigate records quickly.
+*Flow:*
+1. User enters file as before. Records are read and iterated along new guidlines.
+2. Records initially load the county record website for the specific row's county.
+3. Overlay is loaded for each county site.
+    1. User can navigate records (and county sites) by interacting with the overlay controls.
+4. User enters aquired data into the overlay. Data is appended to the record and new links are generated.
+5. Each record eventually ends with a search through USPhonebook and the collection of a phone number.
